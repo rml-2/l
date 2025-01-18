@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Datenanalyse</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+
+<body>
+
+
+<div>
+        <h1>Datenanalyse</h1>
+
+        <script type="text/javascript" src="https://cdn.geogebra.org/apps/deployggb.js"></script>
+        <script type="text/javascript">
+
+                var parameters = {"prerelease":false,"width":800,"height":750,"showToolBar":true,"borderColor":null,"showMenuBar":true,"showAlgebraInput":false,"showResetIcon":true,"enableLabelDrags":false,"enableShiftDragZoom":true,"enableRightClick":false,"capturingThreshold":null,"showToolBarHelp":false,"errorDialogsActive":true,"useBrowserForJS":false,"filename":"vorlage.ggb"};
+
+                var applet = new GGBApplet('5.0', parameters);
+
+                window.onload = function() {
+                    applet.inject('applet_container');
+                }
+        </script>
+
+        <div id="applet_container"></div>
+
+        <h2>CSV-Datei hier hochladen:</h2>
+        <input type="file" id="upload">
+        <p>
+            Die CSV-Datei muss 5 Spalten haben:
+            <ol>
+                <li>Zeit (in s)</li>
+                <li>x (in m)</li>
+                <li>y (in m)</li>
+                <li>vx (in m/s)</li>
+                <li>vy (in m/s)</li>
+            </ol>
+        </p>
+
+        <p>
+            Ausgelesen werden die erste Spalte (Zeit in Sekunden) und die dritte Spalte (Höhe in Metern).
+        </p>
+</div>
+
+<script type="text/javascript"> 
+function evalInput(command) {
+    ggbApplet.evalCommand(command);
+    console.log(command);
+}
+
+function ggbList(listOfNumbers) {
+    return "{" + listOfNumbers.join(",") + "}";
+}
+
+function loadCSVFile(csvCode) {
+    let stringValues = (
+        csvCode
+        .split("\n")
+        .map(line => line.split("; "))
+        .filter(entries => entries.length == 5)
+    );
+    let stringValuesWithoutHeader = stringValues.slice(1);
+    let parsedData = stringValuesWithoutHeader.map(line => line.map(string => parseFloat(string.replace(",", "."))));
+
+    let timeValues = parsedData.map(line => line[0]);
+    let heightValues = parsedData.map(line => line[2]);
+
+    evalInput(`zeiten = ${ggbList(timeValues)}`);
+    evalInput(`hoehen = ${ggbList(heightValues)}`);
+    evalInput(`punkte = Zip((a, b), a, zeiten, b, hoehen)`);
+}
+
+document.getElementById("upload").addEventListener("change", function (event) {
+    let reader = new FileReader();
+    reader.onload = event => loadCSVFile(event.target.result);
+    
+    let CSVFile = event.target.files[0];
+    reader.readAsText(CSVFile);
+});
+</script>
+
+
+</body>
+
+</html>
